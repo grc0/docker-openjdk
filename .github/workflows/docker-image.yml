@@ -7,38 +7,47 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   build:
-
+    name: Build and push Docker image
     runs-on: ubuntu-latest
-
     steps:
-          - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # tag=v3.1.0
 
-          - name: Docker meta
-            id: meta
-            uses: docker/metadata-action@v4
-            with:
-              images: grc0/docker-openjdk
-              flavor: latest=true
-              tags: |
-                type=ref,event=branch
-                type=ref,event=pr
-                type=semver,pattern={{version}}
+      # Extract metadata (tags, labels) for Docker
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@57396166ad8aefe6098280995947635806a0e6ea # tag=v4.1.1
+        with:
+          images: grc0/docker-openjdk
+          tags: |
+            type=ref,event=tag
+            type=ref,event=pr
+            # set unstable tag for develop branch
+            type=raw,value=unstable,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
+      # Build Docker image with Buildx
+      - name: Build Docker image
+        uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # tag=v3.2.0
+        with:
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
-          - name: Login to image repository
-            if: github.ref_type == 'tag'
-            uses: docker/login-action@v2
-            with:
-              registry: docker.io
-              username: ${{secrets.DOCKER_HUB_USERNAME}}
-              password: ${{secrets.DOCKER_HUB_TOKEN}}
+      # Login to Docker registry if not PR build
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # tag=v2.1.0
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-          - name: Build and push
-            uses: docker/build-push-action@v3
-            with:
-              context: .
-              file: Dockerfile
-              push: ${{ github.ref_type == 'tag' }}
-              tags: ${{ steps.meta.outputs.tags }}
-              labels: ${{ steps.meta.outputs.labels }}
+      # Publish Docker image for CI builds if not PR build
+      - name: Push container image
+        uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # tag=v3.2.0
+        if: github.event_name != 'pull_request'
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
