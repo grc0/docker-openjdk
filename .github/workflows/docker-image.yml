@@ -3,51 +3,37 @@ name: Docker Image CI
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ "main" ]
-
+    
+    
 jobs:
-  build:
-    name: Build and push Docker image
+  docker:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # tag=v3.1.0
-
-      # Extract metadata (tags, labels) for Docker
-      - name: Extract Docker metadata
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: Docker meta
         id: meta
-        uses: docker/metadata-action@57396166ad8aefe6098280995947635806a0e6ea # tag=v4.1.1
+        uses: docker/metadata-action@v4
         with:
           images: grc0/docker-openjdk
-          tags: |
-            type=ref,event=tag
-            type=ref,event=pr
-            # set unstable tag for develop branch
-            type=raw,value=unstable,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
-      # Build Docker image with Buildx
-      - name: Build Docker image
-        uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # tag=v3.2.0
-        with:
-          context: .
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      # Login to Docker registry if not PR build
-      - name: Log in to Docker Hub
+      -
+        name: Login to DockerHub
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # tag=v2.1.0
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-
-      # Publish Docker image for CI builds if not PR build
-      - name: Push container image
-        uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # tag=v3.2.0
-        if: github.event_name != 'pull_request'
+      -
+        name: Build and push
+        uses: docker/build-push-action@v3
         with:
           context: .
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          labels: ${{ steps.meta.outputs.labels }}    
