@@ -1,5 +1,6 @@
 FROM debian:11.5-slim
 
+
 # Make sure to fail due to an error at any stage in shell pipes
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
