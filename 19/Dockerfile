@@ -49,7 +49,7 @@ RUN apt-get update -y && \
   # Update the package sources
   apt-get update -y && \
   # Install OpenJDK
-  apt-get install -y --no-install-recommends temurin-17-jdk=${OPENJDK_VERSION} && \
+  apt-get install -y --no-install-recommends temurin-19-jdk=${OPENJDK_VERSION} && \
   # Clean up
   apt-get clean && \
   rm -rf /var/lib/apt/lists/* && \
