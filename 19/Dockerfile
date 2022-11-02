@@ -38,7 +38,7 @@ RUN apt-get update -y && \
 # Install OpenJDK
 
 # renovate: datasource=adoptium-java depName=java-jdk versioning=loose
-ENV OPENJDK_VERSION=19.0.1+10
+ENV OPENJDK_VERSION=19+36
 
 RUN apt-get update -y && \
   # Add Eclipse Adoptium public key
