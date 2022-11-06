@@ -35,7 +35,7 @@ jobs:
         with:
           context: ./17
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: grc0/docker-openjdk:17
           labels: ${{ steps.meta.outputs.labels }}    
       -
         name: Build and push
@@ -43,5 +43,5 @@ jobs:
         with:
           context: ./19
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: grc0/docker-openjdk:19
           labels: ${{ steps.meta.outputs.labels }}
